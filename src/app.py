@@ -1,7 +1,16 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, APIRouter
+from src.modules.auth.routes.auth_routes import router as auth_router
+from src.common.config.database import create_tables
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    create_tables()
+    yield
 
 app = FastAPI(
-    title="FastAPI Backend"
+    title="FastAPI Backend",
+    lifespan=lifespan
 )
 
 router = APIRouter()
@@ -22,3 +31,4 @@ async def health_check():
     }
 
 app.include_router(router)
+app.include_router(auth_router)

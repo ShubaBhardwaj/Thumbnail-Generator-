@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
-from typing import Optional, List
+from typing import Optional
 from uuid import uuid4
-from sqlmodel import SQLModel, Field, Relationship
+from sqlmodel import SQLModel, Field
 
 def generate_uuid() -> str:
     return str(uuid4())

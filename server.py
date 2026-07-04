@@ -1,7 +1,10 @@
+import os
 import uvicorn
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from src.app import app
-from src.common.config.settings import settings
 
 
 def start():
@@ -9,7 +12,7 @@ def start():
     uvicorn.run(
         app,
         host="0.0.0.0",
-        port=settings.PORT
+        port=int(os.getenv("PORT", 8000))
     )
 
 
