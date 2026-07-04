@@ -1,0 +1,25 @@
+fastapi==0.115.12
+uvicorn==0.34.2
+
+# Database
+sqlmodel==0.0.24
+
+# Validation
+pydantic
+
+# Authentication
+python-jose[cryptography]
+pwdlib
+
+# Environment variables
+python-dotenv==1.1.0
+
+# AI
+openai==1.78.1
+
+# Image Storage
+imagekitio==5.0.0
+
+httpx==0.28.1
+
+python-multipart==0.0.20
