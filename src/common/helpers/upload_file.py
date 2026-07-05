@@ -15,3 +15,12 @@ def upload_file(file_byte: bytes, file_name: str, folder: str, content_type: str
     )
 
     return response.url
+
+def get_variants(base_url: str) -> dict:
+    """ Returns a dictionary of 3 Sizes of variant URLs for the given base URL. """
+    return {
+        "youtube_thumbnail":f"{base_url}?tr=w-1280,h-720,c-maintain_ratio,fo-auto",
+        "shorts": f"{base_url}?tr=w-1080,h-1920,c-maintain_ratio,fo-auto",
+        "square":f"{base_url}?tr=w-1080,h-1080,c-maintain_ratio,fo-auto",
+    }
+
