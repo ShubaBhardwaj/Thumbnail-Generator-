@@ -17,5 +17,8 @@ class User(SQLModel, table=True):
     is_active: bool = True
     is_superuser: bool = False
     is_verified: bool = False
+    role: str = Field(default="user")
+    refresh_token: Optional[str] = Field(default=None)
     created_at: datetime = Field(default_factory=get_current_utc_time)
+
     updated_at: datetime = Field(default_factory=get_current_utc_time)
