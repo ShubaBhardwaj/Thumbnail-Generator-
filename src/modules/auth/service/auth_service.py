@@ -8,6 +8,7 @@ from src.common.utils.jwt import (
     generateRefreshToken,
     generate_verification_token,
     verify_verification_token,
+    verify_refresh_token,
 )
 from src.common.config.env_config import APP_URL
 from src.common.utils.email import send_verification_email
@@ -155,6 +156,61 @@ def verify_user(session: Session, token: str) -> dict:
     return {
         "success": True,
         "message": "Email verified successfully"
+    }
+
+def refresh_token(session: Session, refresh_token: str) -> dict:
+    """Refresh access and refresh tokens using a valid refresh token."""
+    # 1. Decode/Verify the refresh token
+    payload = verify_refresh_token(refresh_token)
+    user_id = payload.get("id")
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token payload"
+        )
+    
+    # 2. Get user from DB
+    user = session.get(User, user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found"
+        )
+        
+    # 3. Check user active status
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User is inactive"
+        )
+        
+    # 4. Hash the incoming refresh token to match with DB stored hashed token
+    hashed_refresh = hash_token(refresh_token)
+    if not user.refresh_token or user.refresh_token != hashed_refresh:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or revoked refresh token"
+        )
+        
+    # 5. Generate new access and refresh tokens (Rotation)
+    new_access_token = generateAccessToken({"id": user.id, "role": user.role})
+    new_refresh_token = generateRefreshToken({"id": user.id})
+    
+    # 6. Save hashed new refresh token
+    user.refresh_token = hash_token(new_refresh_token)
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+    
+    # 7. Convert user to dict and prepare response
+    user_dict = user.model_dump()
+    user_dict.pop("hashed_password", None)
+    user_dict.pop("refresh_token", None)
+    
+    return {
+        "user": user_dict,
+        "accessToken": new_access_token,
+        "refreshToken": new_refresh_token
     }
 
 

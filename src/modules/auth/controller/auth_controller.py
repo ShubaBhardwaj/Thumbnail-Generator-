@@ -1,4 +1,4 @@
-from fastapi import Request, Response, status, BackgroundTasks
+from fastapi import Request, Response, status, BackgroundTasks, HTTPException
 from sqlmodel import Session
 
 from src.modules.auth.service import auth_service
@@ -85,4 +85,43 @@ async def logout_user(request: Request, response: Response, session: Session) ->
 def verify_user(session: Session, token: str) -> dict:
     """Controller logic for verifying user email."""
     return auth_service.verify_user(session=session, token=token)
+
+async def refresh_tokens(request: Request, response: Response, session: Session) -> dict:
+    """Controller logic for refreshing access and refresh tokens from cookie."""
+    refresh_token = request.cookies.get("refreshToken")
+    if not refresh_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token is missing"
+        )
+        
+    result = auth_service.refresh_token(session=session, refresh_token=refresh_token)
+    
+    # Set secure HttpOnly cookies (max_age: 7 days for refresh, 15 mins for access)
+    response.set_cookie(
+        key="refreshToken",
+        value=result["refreshToken"],
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        max_age=7 * 24 * 60 * 60
+    )
+    
+    response.set_cookie(
+        key="accessToken",
+        value=result["accessToken"],
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        max_age=15 * 60
+    )
+    
+    return {
+        "success": True,
+        "message": "Tokens refreshed successfully",
+        "data": {
+            "user": result["user"],
+            "accessToken": result["accessToken"]
+        }
+    }
 

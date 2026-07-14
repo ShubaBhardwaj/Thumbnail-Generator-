@@ -33,3 +33,8 @@ async def login(response: Response, user_data: UserLoginDTO, session: Session = 
 async def logout(request: Request, response: Response, session: Session = Depends(get_session)):
     """Endpoint for user logout, delegating to the controller."""
     return await auth_controller.logout_user(request=request, response=response, session=session)
+
+@router.post("/auth/refresh")
+async def refresh(request: Request, response: Response, session: Session = Depends(get_session)):
+    """Endpoint to refresh access and refresh tokens using the stored refresh token."""
+    return await auth_controller.refresh_tokens(request=request, response=response, session=session)
